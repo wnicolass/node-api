@@ -1,6 +1,6 @@
 import { describe, it, before, after } from 'node:test';
-import { strictEqual, deepStrictEqual, ok } from 'assert';
-import { get } from 'http';
+import { strictEqual, deepStrictEqual, ok } from 'node:assert';
+import { get } from 'node:http';
 import app from '../app.js';
 
 const BASE_URL = process.env.BASE_URL ?? 'http://localhost:8000/api';

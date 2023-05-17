@@ -1,8 +1,12 @@
 'use strict';
 import { createServer } from 'node:http';
 import baseRoutes from './routes/base.routes.js';
+import loadEnv from './utils/load-env.js';
 
-const server = createServer(async (req, res) => {
+await loadEnv();
+const server = createServer();
+
+server.on('request', async (req, res) => {
   let matchedRoute;
   matchedRoute = baseRoutes(req, res);
 
