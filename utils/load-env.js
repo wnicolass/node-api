@@ -1,19 +1,45 @@
 import { resolve } from 'node:path';
 import { createReadStream } from 'node:fs';
+import { StringDecoder } from 'node:string_decoder';
 import { readdir, stat } from 'node:fs/promises';
 import { regExpCompiler } from './common.js';
-
+import EnvVarAlreadyExistsError from '../errors/reading-error.js';
 let foundEnv = false;
 
-function addEnvToProcess(envPath) {
-  console.log('this is your envPath:', envPath);
+async function addEnvToProcess(envPath) {
+  const decoder = new StringDecoder('utf-8');
+  const compileRegex = regExpCompiler(/(\r\n|\n|\r)/, ['g', 'm']);
+  const NLCharactersRegExp = compileRegex();
+
+  await new Promise((resolve, reject) => {
+    createReadStream(envPath)
+      .on('data', (bufferedLine) => {
+        let lineWithNLChar = decoder.write(bufferedLine);
+        const linesArray = lineWithNLChar.split(NLCharactersRegExp);
+        const handledLines = linesArray.filter(
+          (line) => !NLCharactersRegExp.test(line)
+        );
+        for (const line of handledLines) {
+          const [propKey, propValue] = line.split('=');
+          if (Object.keys(process.env).includes(propKey)) {
+            throw new EnvVarAlreadyExistsError(
+              'Environment variable already exists'
+            );
+          }
+
+          process.env[propKey] = propValue;
+        }
+      })
+      .on('error', (err) => reject(err))
+      .on('end', () => resolve());
+  });
 }
 
 async function walkDir(path, envName = '.env') {
   try {
     const files = await readdir(path);
     const envPath = await searchDotEnv(files, path, envName);
-    !!envPath && addEnvToProcess(envPath);
+    !!envPath && (await addEnvToProcess(envPath));
     return;
   } catch (err) {
     console.error(err);
@@ -21,8 +47,8 @@ async function walkDir(path, envName = '.env') {
 }
 
 async function searchDotEnv(files, cwd, envName) {
-  const regexCompiler = regExpCompiler(/(node_modules|.git|.venv)/, ['g']);
-  const isIgnorablePath = regexCompiler();
+  const compileRegex = regExpCompiler(/(node_modules|.git|.venv)/, ['g']);
+  const isIgnorablePath = compileRegex();
   for (const file of files) {
     const filePath = resolve(cwd, file);
     const fileStats = await stat(filePath);
