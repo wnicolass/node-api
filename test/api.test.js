@@ -1,14 +1,15 @@
 import { describe, it, before, after } from 'node:test';
-import { strictEqual, deepStrictEqual, ok } from 'assert';
-import { get } from 'http';
+import { strictEqual, deepStrictEqual, ok } from 'node:assert';
+import { get } from 'node:http';
 import app from '../app.js';
 
 const BASE_URL = process.env.BASE_URL ?? 'http://localhost:8000/api';
+const PORT = process.env.PORT;
 
 describe('Base Test Flow', async () => {
   let server = {};
   before(async () => {
-    server = app.listen(8000);
+    server = app.listen(PORT);
     await new Promise((resolve) => server.once('listening', resolve));
   });
 
