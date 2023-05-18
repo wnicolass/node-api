@@ -3,8 +3,9 @@ import { createServer } from 'node:http';
 import baseRoutes from './routes/base.routes.js';
 import loadEnv from './utils/load-env.js';
 
-await loadEnv();
 const server = createServer();
+
+loadEnv().then(() => server.emit('env-loaded'));
 
 server.on('request', async (req, res) => {
   let matchedRoute;
