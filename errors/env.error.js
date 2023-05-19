@@ -1,4 +1,4 @@
-export default class EnvVarAlreadyExistsError extends Error {
+export default class LoadEnvError extends Error {
   constructor(message, options) {
     super(message, options);
   }
