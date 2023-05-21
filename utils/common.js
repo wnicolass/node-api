@@ -1,7 +1,12 @@
 function regExpCompiler(pattern, flags = []) {
-  return function () {
-    return new RegExp(pattern, ...flags);
+  const regexp = new RegExp(pattern, ...flags);
+  return function returnRegex() {
+    return regexp;
   };
 }
 
-export { regExpCompiler };
+const isNewLineCharRegExp = regExpCompiler(/(?:\r\n|\n|\r)/, ['g', 'm']);
+const equalSignRegExp = regExpCompiler(/=(?=.*[^=])?/);
+const isIgnorablePath = regExpCompiler(/(node_modules|.git|.venv)/, ['g']);
+
+export { isNewLineCharRegExp, equalSignRegExp, isIgnorablePath };
