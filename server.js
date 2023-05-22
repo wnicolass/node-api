@@ -2,6 +2,6 @@ import { log } from 'node:console';
 import app from './app.js';
 
 app.on('env-loaded', () => {
-  const port = process.env.PORT;
-  app.listen(port, () => log(`Server listening on port ${port}`));
+  const { PORT } = process.env;
+  app.listen(PORT, () => log(`Server listening on port ${PORT}`));
 });
