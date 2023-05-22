@@ -1,9 +1,10 @@
-const BASE_URL = '/api';
+import { regExpCompiler } from '../utils/common.js';
+
+const baseRoutesRegExp = regExpCompiler(/(\/api\/?|\/)$/);
 
 export default function baseRoutes(req, res) {
   let matched = false;
-  const isBaseURL = req.url === `${BASE_URL}` || req.url === '/';
-  if (isBaseURL && req.method === 'GET') {
+  if (baseRoutesRegExp().test(req.url) && req.method === 'GET') {
     matched = true;
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(
