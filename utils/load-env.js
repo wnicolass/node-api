@@ -6,6 +6,7 @@ import {
   isNewLineCharRegExp,
   equalSignRegExp,
   isIgnorablePath,
+  accetableLinePattern,
 } from './common.js';
 import LoadEnvError from '../errors/env.error.js';
 let foundEnv = false;
@@ -16,13 +17,25 @@ async function addEnvToProcess(envPath) {
   await new Promise((resolve, reject) => {
     createReadStream(envPath)
       .on('data', (bufferedLine) => {
+        // decoding buffer
         let lineWithNLChar = decoder.write(bufferedLine);
+
+        // splititng lines
         const linesArray = lineWithNLChar.split(isNewLineCharRegExp());
+
+        // filtering empty lines
         const handledLines = linesArray.filter((line) => line.length);
+
         for (const line of handledLines) {
+          if (!accetableLinePattern().test(line.trim())) {
+            throw new LoadEnvError(`Broken environment variable at: ${line}`);
+          }
           const [propKey, propValue] = line.split(equalSignRegExp());
+
           if (Object.keys(process.env).includes(propKey)) {
             throw new LoadEnvError('Environment variable already exists');
+          } else if (!propKey || !propValue) {
+            throw new LoadEnvError('Missing key or variable value on env file');
           }
 
           process.env[propKey] = propValue;
