@@ -34,3 +34,14 @@ export function encode(payload = {}) {
   );
   return `${encodedHeader}.${encodedPayload}`;
 }
+
+// 3. Decode the string using the Base64-URL algorithm
+export function decode(jwt) {
+  const [encHeader, encPayload] = jwt.split('.');
+  const stringHeader = Buffer.from(encHeader, 'base64').toString();
+  const stringPayload = Buffer.from(encPayload, 'base64').toString();
+  return {
+    header: JSON.parse(stringHeader),
+    payload: JSON.parse(stringPayload),
+  };
+}
