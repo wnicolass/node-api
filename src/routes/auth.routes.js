@@ -9,8 +9,9 @@ export default function authRoutes(req, res) {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(
       JSON.stringify({
-        logged: 'haha',
+        access_token: 'imagine the token here',
       })
     );
   }
+  return matchedRoute;
 }
