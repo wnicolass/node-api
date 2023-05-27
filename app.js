@@ -11,7 +11,7 @@ export default (async function app() {
 
   server.on('request', async (req, res) => {
     let matchedRoute = baseRoutes(req, res);
-    matchedRoute = authRoutes(req, res);
+    matchedRoute ||= authRoutes(req, res);
 
     if (!matchedRoute) {
       res.writeHead(404, { 'Content-Type': 'application/json' });
