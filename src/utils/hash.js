@@ -1,7 +1,7 @@
 import { pbkdf2, randomBytes } from 'node:crypto';
 
-export async function hash(password) {
-  return await new Promise((res, rej) => {
+export function hash(password) {
+  return new Promise((res, rej) => {
     genSalt(16, (err, bufferedSalt) => {
       if (err) {
         return rej(err);
