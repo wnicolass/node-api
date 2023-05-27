@@ -20,6 +20,7 @@ function base64(content) {
     .replace(/\+/g, '-')
     .replace(/\//g, '_');
 }
+
 // 2. Encode the byte array using the Base64-URL algorithm, removing trailing equal signs (=).
 export function encode(payload = {}) {
   const encodedHeader = base64(
