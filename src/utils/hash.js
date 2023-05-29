@@ -16,7 +16,7 @@ function hash(password) {
 
       function hashCb(err, key) {
         if (err) {
-          return rej(err);
+          rej(err);
         }
 
         const keyBuffer = Buffer.alloc(16 * 5);
@@ -51,7 +51,9 @@ function compare(password, hashedPassword) {
     );
 
     function hashCb(err, key) {
-      if (err) rej(err);
+      if (err) {
+        rej(err);
+      }
 
       res(storedPassAsBuffer.compare(key) === 0);
     }
