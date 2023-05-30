@@ -1,4 +1,5 @@
 import { pbkdf2, randomBytes } from 'node:crypto';
+import { Buffer } from 'node:buffer';
 
 function genSalt(length = 16, callback) {
   return randomBytes(length, callback);
