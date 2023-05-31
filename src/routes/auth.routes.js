@@ -11,6 +11,7 @@ export default function authRoutes(req, res) {
     matchedRoute = true;
     authController.signUp(req, res);
   }
+  req.on('error', (err) => console.log(err));
   res.on('ready', () => res.end());
 
   return matchedRoute;
