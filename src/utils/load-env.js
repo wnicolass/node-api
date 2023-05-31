@@ -1,5 +1,5 @@
 import { resolve } from 'node:path';
-import { createReadStream } from 'node:fs';
+import { createReadStream, readdirSync, readFileSync, statSync } from 'node:fs';
 import { StringDecoder } from 'node:string_decoder';
 import { readdir, stat } from 'node:fs/promises';
 import {
@@ -11,6 +11,21 @@ import {
 import LoadEnvError from '../errors/env.error.js';
 let foundEnv = false;
 
+function validateLine(line) {
+  if (!accetableLinePattern().test(line.trim())) {
+    throw new LoadEnvError(`Broken environment variable at: ${line}`);
+  }
+  const [propKey, propValue] = line.split(equalSignRegExp());
+
+  if (Object.keys(process.env).includes(propKey)) {
+    throw new LoadEnvError('Environment variable already exists');
+  } else if (!propKey || !propValue) {
+    throw new LoadEnvError('Missing key or variable value on env file');
+  }
+
+  return [propKey, propValue];
+}
+
 async function addEnvToProcess(envPath) {
   const decoder = new StringDecoder('utf-8');
 
@@ -20,23 +35,14 @@ async function addEnvToProcess(envPath) {
         // decoding buffer
         let lineWithNLChar = decoder.write(bufferedLine);
 
-        // splititng lines
+        // splitting lines
         const linesArray = lineWithNLChar.split(isNewLineCharRegExp());
 
         // filtering empty lines
         const handledLines = linesArray.filter((line) => line.length);
 
         for (const line of handledLines) {
-          if (!accetableLinePattern().test(line.trim())) {
-            throw new LoadEnvError(`Broken environment variable at: ${line}`);
-          }
-          const [propKey, propValue] = line.split(equalSignRegExp());
-
-          if (Object.keys(process.env).includes(propKey)) {
-            throw new LoadEnvError('Environment variable already exists');
-          } else if (!propKey || !propValue) {
-            throw new LoadEnvError('Missing key or variable value on env file');
-          }
+          const [propKey, propValue] = validateLine(line);
 
           process.env[propKey] = propValue;
         }
@@ -69,7 +75,7 @@ async function searchDotEnv(files, cwd, envName) {
       }
 
       if (!foundEnv && fileStats.isDirectory()) {
-        await walkDir(filePath, envName);
+        walkDir(filePath, envName);
       }
 
       if (foundEnv) {
@@ -86,4 +92,48 @@ export default async function loadEnv(envName, path) {
   } catch (err) {
     console.error(err);
   }
+}
+
+function searchEnvSync(files, path, envName) {
+  for (const file of files) {
+    const filePath = resolve(path, file);
+    const fileStats = statSync(filePath);
+
+    if (!isIgnorablePath().test(filePath)) {
+      if (filePath.endsWith(envName)) {
+        foundEnv = true;
+        return filePath;
+      }
+
+      if (!foundEnv && fileStats.isDirectory()) {
+        walkDirSync(filePath, envName);
+      }
+
+      if (foundEnv) {
+        return;
+      }
+    }
+  }
+}
+
+function addEnvToProcessSync(envPath) {
+  const fileBuffer = readFileSync(envPath);
+  const fileString = fileBuffer.toString('utf8');
+  const fileLines = fileString.split(/\s/g).filter((line) => line.length);
+
+  for (const line of fileLines) {
+    const [propKey, propValue] = validateLine(line);
+    process.env[propKey] = propValue;
+  }
+}
+
+function walkDirSync(path, envName) {
+  const files = readdirSync(path);
+  const envPath = searchEnvSync(files, path, envName);
+  addEnvToProcessSync(envPath);
+}
+
+export function loadEnvSync(envName = '.env', path) {
+  const cwd = path || process.cwd();
+  walkDirSync(cwd, envName);
 }
