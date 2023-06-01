@@ -11,6 +11,7 @@ const isIgnorablePath = regExpCompiler(/(node_modules|.git|.venv)/, ['g']);
 const accetableLinePattern = regExpCompiler(
   /^\w+=(?!(.*("|'){2}.*|\w+=\w?)).*$/
 );
+const isBaseRoute = regExpCompiler(/(\/api\/?|\/)$/)();
 const isSignIn = regExpCompiler(/\/api\/sign-in\/?$/)();
 const isSignUp = regExpCompiler(/\/api\/sign-up\/?$/)();
 const isValidEmail = regExpCompiler(
@@ -30,4 +31,5 @@ export {
   isSignUp,
   isValidEmail,
   isValidPassword,
+  isBaseRoute,
 };
