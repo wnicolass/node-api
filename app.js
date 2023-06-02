@@ -10,7 +10,7 @@ export default (async function app() {
   await loadEnv();
 
   server.on('request', async (req, res) => {
-    let matchedRoute = baseRoutes(req, res);
+    let matchedRoute = await baseRoutes(req, res);
     matchedRoute ||= authRoutes(req, res);
 
     if (!matchedRoute) {
