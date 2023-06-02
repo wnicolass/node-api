@@ -13,7 +13,7 @@ import { Buffer } from 'node:buffer';
  */
 
 // 1. Take the header/payload as a byte array of its UTF-8 representation.
-function base64(content) {
+export function base64(content) {
   return Buffer.from(content)
     .toString('base64')
     .replace(/=/g, '')
