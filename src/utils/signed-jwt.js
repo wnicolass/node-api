@@ -40,5 +40,4 @@ export function signedEncode(header, payload, secret) {
 
   return `${baseJWT}.${signatureDigest}`;
 }
-
 console.log(signedEncode({}, { sub: 1, iat: 3123123 }, ''));
