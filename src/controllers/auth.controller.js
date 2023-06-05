@@ -1,9 +1,11 @@
 import { StringDecoder } from 'node:string_decoder';
 import models from '../database/index.js';
-import { encode } from '../utils/unsec-jwt.js';
+import { encodeJWT, decodeJWT } from '../utils/signed-jwt.js';
 import { isValidEmail, isValidPassword } from '../utils/common.js';
 import { hash, compare } from '../utils/hash.js';
 import buildRes from '../utils/res-builder.js';
+
+const { JWT_SECRET } = process.env;
 
 export default (function authController() {
   return {
@@ -37,8 +39,8 @@ export default (function authController() {
           return buildRes(res, headers, body, 400);
         }
 
-        const payload = { id: user.id, email };
-        const token = encode(payload);
+        const payload = { sub: user.id, email };
+        const token = encodeJWT(payload, JWT_SECRET);
         const headers = { 'Content-Type': 'application/json' };
         const body = { access_token: token };
         return buildRes(res, headers, body, 200);
