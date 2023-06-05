@@ -1,8 +1,6 @@
 import { createHmac } from 'node:crypto';
-import JwtPartTypeError from '../errors/jwt.error.js';
+import { JwtTypeError, JwtError } from '../errors/jwt.error.js';
 import { base64 } from './unsec-jwt.js';
-
-const { JWT_SECRET } = process.env;
 
 /*
  * We sign a JWT to ensure that the
@@ -12,21 +10,28 @@ const { JWT_SECRET } = process.env;
  * See: https://auth0.com/resources/ebooks/jwt-handbook/
  */
 
-export function signedEncode(header, payload, secret) {
-  if (typeof header !== 'object' || typeof payload !== 'object') {
-    throw new JwtPartTypeError(
+function unbase64(b64encoded) {
+  return Buffer.from(b64encoded, 'base64url').toString();
+}
+
+export function encodeJWT(payload, secret) {
+  if (typeof payload !== 'object') {
+    throw new JwtTypeError(
       `Header and Payload must be of type object, instead received ${typeof header} - ${typeof payload}`
     );
   }
 
   if (typeof secret !== 'string') {
-    throw new JwtPartTypeError(
+    throw new JwtTypeError(
       `Secret must be of type string, instead received ${typeof secret}`
     );
   }
 
   // HMAC + SHA256 = HS256
-  header['alg'] = 'HS256';
+  const header = {
+    alg: 'HS256',
+    typ: 'JWT',
+  };
 
   // encoding header and payload
   const encodedHeader = base64(JSON.stringify(header));
@@ -34,10 +39,41 @@ export function signedEncode(header, payload, secret) {
   const baseJWT = `${encodedHeader}.${encodedPayload}`;
 
   // signing JWT
-  const signature = createHmac('sha256', JWT_SECRET);
+  const signature = createHmac('sha256', secret);
   signature.update(JSON.stringify(baseJWT));
   const signatureDigest = signature.digest('base64url');
 
   return `${baseJWT}.${signatureDigest}`;
 }
-console.log(signedEncode({}, { sub: 1, iat: 3123123 }, ''));
+
+export function decodeJWT(jwt, secret) {
+  if (typeof jwt !== 'string' || typeof secret !== 'string') {
+    throw new JwtTypeError(
+      `JWT and Secret must be both of type string, instead received`
+    );
+  }
+
+  const jwtParts = jwt.split('.');
+  if (jwtParts.length !== 3) {
+    throw new JwtError('Invalid JWT format');
+  }
+
+  const [header, payload, incomingSignature] = jwtParts;
+  const parsedHeader = JSON.parse(unbase64(header));
+  const parsedPayload = JSON.parse(unbase64(payload));
+  console.log(parsedPayload);
+  if (parsedHeader.alg !== 'HS256') {
+    throw new JwtError('Invalid JWT algorithm');
+  }
+
+  // Sig === Signature
+  const checkSig = createHmac('sha256', secret);
+  checkSig.update(JSON.stringify(`${header}.${payload}`));
+  const checkSigDigest = checkSig.digest('base64url');
+
+  if (incomingSignature !== checkSigDigest) {
+    throw new JwtError('Invalid JWT');
+  }
+
+  return { header: parsedHeader, payload: parsedPayload };
+}
