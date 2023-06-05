@@ -61,7 +61,7 @@ export function decodeJWT(jwt, secret) {
   const [header, payload, incomingSignature] = jwtParts;
   const parsedHeader = JSON.parse(unbase64(header));
   const parsedPayload = JSON.parse(unbase64(payload));
-  console.log(parsedPayload);
+
   if (parsedHeader.alg !== 'HS256') {
     throw new JwtError('Invalid JWT algorithm');
   }

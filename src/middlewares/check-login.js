@@ -27,4 +27,7 @@ export default async function checkLogin(req, res) {
       'Content-Type': 'application/json',
     });
   }
+
+  req.user = user;
+  return;
 }
