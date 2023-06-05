@@ -1,6 +1,8 @@
-import { decode } from '../utils/unsec-jwt.js';
+import { decodeJWT } from '../utils/signed-jwt.js';
 import models from '../database/index.js';
 import HTTPError from '../errors/http.error.js';
+
+const { JWT_SECRET } = process.env;
 
 export default async function checkLogin(req, res) {
   const { authorization } = req.headers;
@@ -14,8 +16,8 @@ export default async function checkLogin(req, res) {
   const [, token] = authorization.split(/\s/);
   let user;
   try {
-    const { id, email } = decode(token).payload;
-    user = await models.User.findOne({ where: { id, email } });
+    const { sub, email } = decodeJWT(token, JWT_SECRET).payload;
+    user = await models.User.findOne({ where: { id: sub, email } });
   } catch (err) {
     console.log(err);
   }
@@ -25,4 +27,7 @@ export default async function checkLogin(req, res) {
       'Content-Type': 'application/json',
     });
   }
+
+  req.user = user;
+  return;
 }

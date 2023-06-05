@@ -14,7 +14,7 @@ export default (function baseController() {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(
         JSON.stringify({
-          index: 'ok',
+          username: req.user.username,
         })
       );
     },
