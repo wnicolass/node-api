@@ -33,6 +33,11 @@ export function encodeJWT(payload, secret) {
     typ: 'JWT',
   };
 
+  // 7 days in seconds
+  const expiryDate = (Date.now() + 1000 * 60 * 60 * 24 * 7) / 1000;
+  payload['exp'] = expiryDate;
+  payload['iat'] = Date.now() / 1000;
+
   // encoding header and payload
   const encodedHeader = base64(JSON.stringify(header));
   const encodedPayload = base64(JSON.stringify(payload));
@@ -64,6 +69,8 @@ export function decodeJWT(jwt, secret) {
 
   if (parsedHeader.alg !== 'HS256') {
     throw new JwtError('Invalid JWT algorithm');
+  } else if (!(Date.now() / 1000 < parsedPayload.exp)) {
+    throw new JwtError('Expired JWT');
   }
 
   // Sig === Signature
